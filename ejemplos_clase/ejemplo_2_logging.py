@@ -17,6 +17,12 @@ if __name__ == "__main__":
     os.makedirs("./logs", exist_ok=True)
 
     # Configurar el logger
-
+    with open("logging.json", 'rt') as f:
+       config = json.load(f)
+       logging.config.dictConfig(config)
 
     # Realizar algunas pruebas
+    logging.info('¡Hola Mundo!')
+    logging.error('Mqtt Local connection faild')
+    logging.warning('No se pudo enviar el paquete MQTT')
+    logging.debug('THRESHOLD_FIN 15.9')
