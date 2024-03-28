@@ -1,0 +1,7 @@
+2024-03-28T17:09:52.448 | INFO | [ejemplo_2_logging.py] | [25] | ¡Hola Mundo!
+2024-03-28T17:09:52.448 | ERROR | [ejemplo_2_logging.py] | [26] | Mqtt Local connection faild
+2024-03-28T17:09:52.449 | WARNING | [ejemplo_2_logging.py] | [27] | No se pudo enviar el paquete MQTT
+2024-03-28T17:13:55.581 | INFO | [ejemplo_2_logging.py] | [25] | ¡Hola Mundo!
+2024-03-28T17:13:55.581 | ERROR | [ejemplo_2_logging.py] | [26] | Mqtt Local connection faild
+2024-03-28T17:13:55.582 | WARNING | [ejemplo_2_logging.py] | [27] | No se pudo enviar el paquete MQTT
+2024-03-28T17:13:55.583 | DEBUG | [ejemplo_2_logging.py] | [28] | THRESHOLD_FIN 15.9
