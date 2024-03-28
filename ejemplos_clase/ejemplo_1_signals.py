@@ -22,19 +22,39 @@ def accel_analysis(accel, client):
     print(f"Accel {accel}")
     estado_sistema = client_local._userdata["estado_sistema"]
     estado_luz = client_local._userdata["estado_luz"]
+    print(f"Accel {accel}, estado_sistema {estado_sistema}")
 
     # Máquina de estados
     if estado_sistema == ESTADO_INICIO:
-        pass
+        topic = "actuadores/luces/1"
+        client_local.publish(topic, 0)
         # completar el código del estado ESTADO_INICIO
+        if accel > THRESHOLD_INICIO:
+            estado_sistema = ESTADO_PRESENCIA_FLANCO
 
     elif estado_sistema == ESTADO_PRESENCIA_FLANCO:
-        pass
+        
         # completar el código del estado ESTADO_PRESENCIA_FLANCO
+        if accel < THRESHOLD_INICIO:
+            estado_sistema = ESTADO_INICIO
+        elif accel > THRESHOLD_FIN:
+            estado_sistema = ESTADO_FLANCO_CONFIRMADO
+            #preden la luz
+            #enviar mendaje mqtt
+            #topic = "actuadores/luces/1"
+            #if estado_luz == 1:
+            #    estado_luz = 0
+            #elif estado_luz == 0:
+            #    estado_luz = 1
+            #client_local.publish(topic, estado_luz)
 
     elif estado_sistema == ESTADO_FLANCO_CONFIRMADO:
-        pass
+        topic = "actuadores/luces/1"
+        client_local.publish(topic, 1)
         # completar el código del estado ESTADO_FLANCO_CONFIRMADO
+        if accel < THRESHOLD_INICIO:
+            estado_sistema = ESTADO_INICIO
+
 
 
     # Almacenar el nuevo valor de estado
