@@ -82,6 +82,7 @@ def on_connect_local(client, userdata, flags, rc):
         client.subscribe("actuadores/joystick")
         client.subscribe("sensores/gps")
         client.subscribe("sensores/inerciales")
+        client.subscribe("sensores/monitoreo")
     else:
         logging.error(f"Mqtt Local connection faild, error code={rc}")
 
@@ -122,6 +123,7 @@ def procesamiento_local(name, flags, client_local, client_remoto):
             accel_analysis(accel, client_local)
         
         topico_remoto = config["DASHBOARD_TOPICO_BASE"] + topico
+        print(f"Dato enviado al remoto{mensaje}")
         client_remoto.publish(topico_remoto, mensaje)
 
     logging.info(f"Termina thread {name}")
