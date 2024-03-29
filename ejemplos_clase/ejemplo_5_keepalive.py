@@ -139,6 +139,7 @@ def on_connect_remoto(client, userdata, flags, rc):
         client.subscribe(config["DASHBOARD_TOPICO_BASE"] + "actuadores/volar")
         client.subscribe(config["DASHBOARD_TOPICO_BASE"] + "actuadores/luces/1")
         client.subscribe(config["DASHBOARD_TOPICO_BASE"] + "actuadores/motores/#")
+        client.subscribe(config["DASHBOARD_TOPICO_BASE"] + "keepalive/request")
     else:
         logging.error(f"Mqtt Remoto connection faild, error code={rc}")
 
@@ -175,6 +176,10 @@ def procesamiento_remoto(name, flags, client_local, client_remoto):
         topico = topico_completo.replace(config["DASHBOARD_TOPICO_BASE"], '')
 
         # Analizar topico recibido
+        if topico == "keepalive/request":
+            # Enviar respuesta de keepalive
+            topico_remoto = config["DASHBOARD_TOPICO_BASE"] + "keepalive/ack"
+            client_remoto.publish(topico_remoto, "1")
 
         # Agregar el destintivo de que el mensaje viene del dashboard
         topico_local = "dashboardiot/" + topico

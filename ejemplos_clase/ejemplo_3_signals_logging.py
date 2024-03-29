@@ -22,7 +22,7 @@ ESTADO_PRESENCIA_FLANCO = 1
 ESTADO_FLANCO_CONFIRMADO = 2
 
 def accel_analysis(accel, client):
-    print(f"Accel {accel}")
+    logging.debug(f"Accel {accel}")
     estado_sistema = client_local._userdata["estado_sistema"]
     estado_luz = client_local._userdata["estado_luz"]
 
@@ -73,7 +73,7 @@ def accel_analysis(accel, client):
 # Aquí crear el callback on_connect_local
 def on_connect_local(client, userdata, flags, rc):
     if rc == 0:
-        print("Mqtt Local conectado")
+        logging.info("Mqtt Local conectado")
 
         # Aquí Suscribirse a los topicos locales deseados
         client.subscribe("actuadores/volar")
@@ -83,7 +83,7 @@ def on_connect_local(client, userdata, flags, rc):
         client.subscribe("sensores/gps")
         client.subscribe("sensores/inerciales")
     else:
-        print(f"Mqtt Local connection faild, error code={rc}")
+        logging.error(f"Mqtt Local connection faild, error code={rc}")
 
 
 # Aquí crear el callback on_message_local
@@ -97,7 +97,7 @@ def on_message_local(client, userdata, message):
 
 # Aquí crear el callback procesamiento_local
 def procesamiento_local(name, flags, client_local, client_remoto):
-    print(f"Comienza thread {name}")
+    logging.info(f"Comienza thread {name}")
     queue = client_local._userdata["queue"]
 
     while flags["thread_continue"]:
@@ -124,7 +124,7 @@ def procesamiento_local(name, flags, client_local, client_remoto):
         topico_remoto = config["DASHBOARD_TOPICO_BASE"] + topico
         client_remoto.publish(topico_remoto, mensaje)
 
-    print(f"Termina thread {name}")
+    logging.info(f"Termina thread {name}")
 
 # ----------------------
 # ----------------------
@@ -132,14 +132,14 @@ def procesamiento_local(name, flags, client_local, client_remoto):
 
 def on_connect_remoto(client, userdata, flags, rc):
     if rc == 0:
-        print("Mqtt Remoto conectado")
+        logging.info("Mqtt Remoto conectado")
 
         # Aquí Suscribirse a los topicos remotos deseados
         client.subscribe(config["DASHBOARD_TOPICO_BASE"] + "actuadores/volar")
         client.subscribe(config["DASHBOARD_TOPICO_BASE"] + "actuadores/luces/1")
         client.subscribe(config["DASHBOARD_TOPICO_BASE"] + "actuadores/motores/#")
     else:
-        print(f"Mqtt Remoto connection faild, error code={rc}")
+        logging.error(f"Mqtt Remoto connection faild, error code={rc}")
 
 
 # Aquí crear el callback on_message_remoto
