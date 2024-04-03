@@ -216,3 +216,13 @@
 2024-03-29T13:20:25.519 | INFO | [ejemplo_5_keepalive.py] | [76] | Mqtt Local conectado
 2024-03-29T13:20:26.545 | INFO | [ejemplo_4_monitoreo.py] | [76] | Mqtt Local conectado
 2024-03-29T13:20:27.548 | INFO | [ejemplo_5_keepalive.py] | [76] | Mqtt Local conectado
+2024-04-02T23:31:16.189 | INFO | [ejemplo_5_keepalive.py] | [259] | Lanzar thread de procesamiento de MQTT local
+2024-04-02T23:31:16.190 | INFO | [ejemplo_5_keepalive.py] | [76] | Mqtt Local conectado
+2024-04-02T23:31:16.190 | INFO | [ejemplo_5_keepalive.py] | [101] | Comienza thread procesamiento_local
+2024-04-02T23:31:16.190 | INFO | [ejemplo_5_keepalive.py] | [263] | Lanzar thread de procesamiento de MQTT remoto
+2024-04-02T23:31:16.192 | INFO | [ejemplo_5_keepalive.py] | [157] | Comienza thread procesamiento_remoto
+2024-04-02T23:31:16.387 | INFO | [ejemplo_5_keepalive.py] | [136] | Mqtt Remoto conectado
+2024-04-03T00:02:53.415 | INFO | [ejemplo_5_keepalive.py] | [201] | Señal de terminar programa
+2024-04-03T00:02:53.890 | INFO | [ejemplo_5_keepalive.py] | [275] | Comenzando la finalización de los threads...
+2024-04-03T00:02:53.891 | INFO | [ejemplo_5_keepalive.py] | [128] | Termina thread procesamiento_local
+2024-04-03T00:02:53.893 | INFO | [ejemplo_5_keepalive.py] | [190] | Termina thread procesamiento_remoto

@@ -19,7 +19,7 @@ ESTADO_PRESENCIA_FLANCO = 1
 ESTADO_FLANCO_CONFIRMADO = 2
 
 def accel_analysis(accel, client):
-    print(f"Accel {accel}")
+    #print(f"Accel {accel}")
     estado_sistema = client_local._userdata["estado_sistema"]
     estado_luz = client_local._userdata["estado_luz"]
     print(f"Accel {accel}, estado_sistema {estado_sistema}")

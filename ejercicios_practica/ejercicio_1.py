@@ -14,7 +14,7 @@ import logging.config
 config = dotenv_values()
 
 #Parte 2 thresholds y estados:
-THRESHOLD_INICIO = 15
+THRESHOLD_INICIO = 60
 THRESHOLD_FIN = 80
 
 ESTADO_INICIO = 0
@@ -22,42 +22,44 @@ ESTADO_PRESENCIA_FLANCO = 1
 ESTADO_FLANCO_CONFIRMADO = 2
 
 
-def accel_analysis(accel, client):
+def heading_analysis(heading, client,):
     #print(f"Accel {accel}")
     estado_sistema = client_local._userdata["estado_sistema"]
     estado_luz = client_local._userdata["estado_luz"]
-    logging.info(f"Accel {accel}, estado_sistema {estado_sistema}")
+    logging.info(f"Accel {heading}, estado_sistema {estado_sistema}")
 
     #Máquina de estados
     if estado_sistema == ESTADO_INICIO:
-        
+        topico = "actuadores/luces/1"
+        client_local.publish(topico, 0)
         #Completar el código del estado ESTADO_INICIO
-        if accel > THRESHOLD_INICIO:
+        if heading > THRESHOLD_INICIO:
             estado_sistema = ESTADO_PRESENCIA_FLANCO 
 
     elif estado_sistema == ESTADO_PRESENCIA_FLANCO:
         # completar el código del estado ESTADO_PRESENCIA_FLANCO
-        if accel < THRESHOLD_INICIO:
+        if heading < THRESHOLD_INICIO:
             estado_sistema = ESTADO_INICIO
             
-        elif accel > THRESHOLD_FIN:
+        elif heading > THRESHOLD_FIN:
             estado_sistema = ESTADO_FLANCO_CONFIRMADO
             #preder la luz enviar un mensaje MQTT
             #topico = "sensores/inerciales"
-            topico = "actuadores/luces/1"
-            if estado_luz == 1:
-                estado_luz = 0
-            elif estado_luz == 0:
-                estado_luz = 1
-            client_local.publish(topic, estado_luz)
+            #topico = "actuadores/luces/1"
+            #if estado_luz == 1:
+                #estado_luz = 0
+            #elif estado_luz == 0:
+                #estado_luz = 1
+            #client_local.publish(topico, estado_luz)
            
 
     elif estado_sistema == ESTADO_FLANCO_CONFIRMADO:
-       
+        topico = "actuadores/luces/1"
+        client_local.publish(topico, 1)
         #completar el código del estado ESTADO_FLANCO_CONFIRMADO
-        if accel< THRESHOLD_INICIO:
+        if heading< THRESHOLD_INICIO:
             estado_sistema = ESTADO_INICIO
-            #logging.info(f"RESET ESTADO_INICIO {accel}")
+            logging.info(f"RESET ESTADO_INICIO {heading}")
 
      # Almacenar el nuevo valor de estado
     client_local._userdata["estado_sistema"] = estado_sistema
@@ -65,13 +67,13 @@ def accel_analysis(accel, client):
 
 
 
-#Parte 2 MQTT LOCAL
-# 2.1) Establecer el callback para la conexion LOCAl, fusion on_connect_local
+ #Parte 2 MQTT LOCAL
+ # 2.1) Establecer el callback para la conexion LOCAl, fusion on_connect_local
 def on_connect_local(client, userdata, flags, rc):
     if rc == 0:
-        #logging.info("Mqtt_Local esta conectado")
+        logging.info("Mqtt_Local esta conectado")
 
-        # Aquí Suscribirse a los topicos locales deseados
+        #Aquí Suscribirse a los topicos locales deseados
         client.subscribe("actuadores/volar")
         client.subscribe("actuadores/luces/1")
         client.subscribe("actuadores/motores/#")
@@ -80,10 +82,10 @@ def on_connect_local(client, userdata, flags, rc):
         client.subscribe("sensores/inerciales")
         client.subscribe("sensores/monitoreo")
     else:
-        #logging.error(f"Mqtt_Local No se pudo establecer conectar, error code={rc}")
+        logging.error(f"Mqtt_Local No se pudo establecer conectar, error code={rc}")
 
-#2.2) Recibir los mensaje y topicos que llegan del on_connect_cocal me dioante la funcion 
-# on_message_local (Productor)
+ #2.2) Recibir los mensaje y topicos que llegan del on_connect_cocal me dioante la funcion 
+ #on_message_local (Productor)
 def on_message_local(client, userdata, message):
     queue_local = userdata["queue_local"]
     topico = message.topic
@@ -91,11 +93,12 @@ def on_message_local(client, userdata, message):
     #Agregar dato de la cola 
     queue_local.put({"topico": topico, "mensaje": mensaje})
 
-#2.3)  Aquí crear el callback procesamiento_local (Consumidor)
-def procesamiento_local(name, flags, client_local, client_remoto):
-    #logging.info(f"{name}: Comienza thread de MQTT local")
-    queue_local = client_local._userdata["queue_local"]
 
+ #2.3) Aquí crear el callback procesamiento_local (Consumidor)
+def procesamiento_local(name, flags, client_local, client_remoto):
+    logging.info(f"{name}: Comienza thread de MQTT local")
+    queue_local = client_local._userdata["queue_local"]
+    
     while flags["thread_continue"]:
         msg = queue_local.get(block=True)
 
@@ -103,7 +106,7 @@ def procesamiento_local(name, flags, client_local, client_remoto):
         if msg is None:
             continue
 
-        # Hay datos para leer, los consumo e imprimo en consola
+        #Hay datos para leer, los consumo e imprimo en consola
         print(f"mensaje recibido en thread {name}:")
         print(f"{msg['topico']}: {msg['mensaje']}")
         topico = msg['topico']
@@ -112,39 +115,39 @@ def procesamiento_local(name, flags, client_local, client_remoto):
         # Consultar si el tópico es de los sensores inerciales
         if topico == "sensores/inerciales":
             data = json.loads(mensaje)
-            accel = float(data["accel"])
-            accel_analysis(accel, client_local)
+            heading = float(data["heading"])
+            heading_analysis(heading, client_local)
 
         #Enviando mensaje y topico a la nuve desde el thread prosamiento_local
         topico_remoto = config["DASHBOARD_TOPICO_BASE"] + topico
         client_remoto.publish(topico_remoto, mensaje)
 
-    #logging.info(f"{name}termina thread")
+    logging.info(f"{name}termina thread")
 
     #Parte 3 MQTT REMOTO
     # 3.1) Establecer el callback para la conexion LOCAl, fusion on_connect_local
 def on_connect_remoto(client, userdata, flags, rc):
     if rc == 0:
-            #logging.info("Mqtt_Remoto Esta conectado")
-            # Aquí Suscribirse a los topicos remotos deseados
+        logging.info("Mqtt_Remoto Esta conectado")
+        # Aquí Suscribirse a los topicos remotos deseados
         client.subscribe(config["DASHBOARD_TOPICO_BASE"] + "actuadores/volar")
         client.subscribe(config["DASHBOARD_TOPICO_BASE"] + "actuadores/luces/1")
         client.subscribe(config["DASHBOARD_TOPICO_BASE"] + "actuadores/motores/#")
         client.subscribe(config["DASHBOARD_TOPICO_BASE"] + "sensores/inerciales")
         client.subscribe(config["DASHBOARD_TOPICO_BASE"] + "keepalive/request")
     else:
-            #logging.error(f"Mqtt_Remoto No se pudo establecer conectar , error code={rc}")
+        logging.error(f"Mqtt_Remoto No se pudo establecer conectar , error code={rc}")
 
-#3.2) Aquí crear el callback on_message_remoto
+    #3.2) Aquí crear el callback on_message_remoto
 def on_message_remoto(client, userdata, message):
     queue_remoto= userdata["queue_remoto"]
     topico = message.topic
     mensaje= str(message.payload.decode("utf-8"))
     queue_remoto.put({"topico": topico, "mensaje": mensaje})
 
-#3.3 Crear la funcion procesamiento_remoto#
+    #3.3 Crear la funcion procesamiento_remoto#
 def procesamiento_remoto(name,queue_remoto, client_local, flags):
-    #logging.info(f"{name}: Comienza thread MQTT remoto")
+    logging.info(f"{name}: Comienza thread MQTT remoto")
     queue_remoto= client_remoto._userdata["queue_remoto"]
 
     while flags["thread_continue"]:
@@ -156,27 +159,28 @@ def procesamiento_remoto(name,queue_remoto, client_local, flags):
 
         # Analisis topico recibido
         if topico == "keepalive/request":
-            topico_remoto = config["DASHBOARD_TOPICO_BASE"] + "keepalive/ack"
-            client_remoto.publish(topico_remoto, "1")
+            logging.debug("responde al keepalive")
+            #topico_remoto = config["DASHBOARD_TOPICO_BASE"] + "keepalive/ack"
+            client_remoto.publish(config["DASHBOARD_TOPICO_BASE"] + "keepalive/ack",1)
         #Agregar el destintivo de que el mensaje viene del dashboard
         topico_local = "dashboardiot/" + topico_local
-        #logging.debug("Dato recibido de espacio -topico:", topico_local)
-        #logging.debug("Dato recibido del espacio -mensaje:",mensaje)
+        logging.debug("Dato recibido de espacio -topico:", topico_local)
+        logging.debug("Dato recibido del espacio -mensaje:",mensaje)
         client_local.publish(topico,mensaje)
        
-    #logging.info(f"{name} Termina thread")
+    logging.info(f"{name} Termina thread")
 
-#Fusion de finalizar programa
+   #Fusion de finalizar programa
 flags = {"thread_continue": True}
 def finalizar_programa(sig, frame):
     global flags
     logging.info("Señal de terminar programa")    
     flags["thread_continue"] = False
 
-# Invocar el programa principal
-if __name__ == "__main__":
+   # Invocar el programa principal
 
-     # crear la carepta de logs sino existe
+if __name__ == "__main__":
+    # crear la carepta de logs sino existe
     os.makedirs("./logs", exist_ok=True)
     # Configurar el logger
     with open("logging.json", 'rt') as f:
@@ -259,6 +263,7 @@ if __name__ == "__main__":
     # el "join" espera por la conclusion de cada thread, debo lanzar el join
     # por cada uno
     thread_procesamiento_local.join()
+    thread_procesamiento_remoto.join()
 
     client_local.disconnect()
     client_local.loop_stop()
